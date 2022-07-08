@@ -59,13 +59,13 @@ func valueHandler(ginctx *gin.Context) {
 
 	// Internal Server Error
 	case http.StatusInternalServerError:
-		ginctx.JSON(http.StatusBadRequest, responseDto{
+		ginctx.JSON(http.StatusInternalServerError, responseDto{
 			Message: "500 -> Internal Server Error",
 		})
 
 	// OK
 	default:
-		ginctx.JSON(http.StatusBadRequest, responseDto{
+		ginctx.JSON(http.StatusOK, responseDto{
 			Message: "200 -> OK",
 		})
 	}

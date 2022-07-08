@@ -17,10 +17,11 @@ buildAndRunAlertApp() {
     -e NEWRELIC_LICENSE_KEY=$NEWRELIC_LICENSE_KEY \
     -p 8080:8080 \
     $appName
-    echo -e "Docker image for alert app is running successfully.\n"
+  echo -e "Docker image for alert app is running successfully.\n"
 }
 
 checkAppReadiness() {
+
   echo "Checking if app is up and running..."
   while true
   do  
@@ -28,9 +29,9 @@ checkAppReadiness() {
     # Check health endpoint
     isAppReady=$(curl -X GET http://localhost:8080/health \
       2> /dev/null \
-      | jq .message)
+      | jq -r .message)
 
-    if [[ isAppReady == "OK" ]]; then
+    if [[ $isAppReady == "OK!" ]]; then
       echo -e "Ready!\n"
       break
     else
@@ -53,7 +54,7 @@ makeRestCall() {
     -H "Content-Type: application/json" \
     -d \
     '{
-        "value": "'"${value}"'"
+      "value": '$value'
     }'
 
   echo -e "\n"
@@ -70,23 +71,19 @@ checkAppReadiness
 while true
 do
   # 200
-  makeRestCall 200
-  makeRestCall 200
-  makeRestCall 200
-  makeRestCall 200
-  makeRestCall 200
-  makeRestCall 200
+  for i in {1..5}
+  do
+    makeRestCall 200
+  done
 
   # 400
   makeRestCall 400
 
   # 200
-  makeRestCall 200
-  makeRestCall 200
-  makeRestCall 200
-  makeRestCall 200
-  makeRestCall 200
-  makeRestCall 200
+  for i in {1..5}
+  do
+    makeRestCall 200
+  done
 
   # 500
   makeRestCall 500
