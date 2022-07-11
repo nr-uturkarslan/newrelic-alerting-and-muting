@@ -1,18 +1,97 @@
 #!/bin/bash
 
-accountId="<YOUR_ACCOUNT_ID>"
-alertPolicyName="My Undisputed Alert Policy"
+### Set variables ###
+
+# Account
+accountId="YOUR_ACCOUNT_ID"
+
+# Alert policy
+alertPolicyName='My Undisputed Alert Policy'
+
+# Alert condition
 alertConditionName="My Undisputed Alert Condition"
-alertConditionId="<YOUR_ALERT_CONDITION_ID>"
+incidentPreference="PER_CONDITION"
+
+# Notification channel
+notificationChannelName="My Undisputed Notification Channel"
+notificationChannelEmail="YOUR_NOTIFICATION_EMAIL"
+
+####################
+### Alert policy ###
+####################
+
+# Set NerdGraph query
+query='{"query":"mutation {\n  alertsPolicyCreate(accountId: '$accountId', policy: {incidentPreference: '$incidentPreference', name: \"'$alertPolicyName'\"}) {\n    id\n  }\n}\n", "variables":""}'
+
+# Clear the additional spaces
+query=$(echo $query | sed 's/    /  /g')
 
 # Create alert policy
-curl https://api.eu.newrelic.com/graphql \
+alertPolicyId=$(curl https://api.eu.newrelic.com/graphql \
   -H "Content-Type: application/json" \
-  -H "API-Key: $NEWRELIC_LICENSE_KEY" \
-  --data-binary '{"query":"mutation {\n  alertsPolicyCreate(accountId: "'"$accountId"'", policy: {name: \""'"$alertPolicyName"'"\", incidentPreference: PER_CONDITION}) {\n    id\n    name\n    incidentPreference\n  }\n}\n", "variables":""}'
+  -H "API-Key: $NEWRELIC_API_KEY" \
+  --data-binary "$query" \
+  | jq -r .data.alertsPolicyCreate.id)
+
+echo "Alert policy ID: $alertPolicyId"
+#########
+
+#######################
+### Alert condition ###
+#######################
+
+# Set NerdGraph query
+nrqlQuery="FROM Transaction SELECT count(*) WHERE appName = \u0027alert-app\u0027 AND http.statusCode = 400"
+query='{"query":"mutation {\n  alertsNrqlConditionStaticCreate(accountId: '$accountId', policyId: '$alertPolicyId', condition: {enabled: true, name: \"'$alertConditionName'\", description: null, nrql: {query: \"'$nrqlQuery'\"}, expiration: null, runbookUrl: null, signal: {aggregationDelay: 120, aggregationMethod: EVENT_FLOW, aggregationTimer: null, fillValue: null, aggregationWindow: 60, fillOption: NONE, slideBy: null}, terms: [{operator: ABOVE, threshold: 1, priority: CRITICAL, thresholdDuration: 300, thresholdOccurrences: AT_LEAST_ONCE}], violationTimeLimitSeconds: 259200}) {\n    id\n  }\n}\n", "variables":""}'
+
+# Clear the additional spaces
+query=$(echo $query | sed 's/    /  /g')
 
 # Create alert condition
-curl https://api.eu.newrelic.com/graphql \
+alertConditionId=$(curl https://api.eu.newrelic.com/graphql \
   -H "Content-Type: application/json" \
-  -H "API-Key: $NEWRELIC_LICENSE_KEY" \
-  --data-binary '{"query":"mutation {\n  alertsNrqlConditionStaticCreate(accountId: "'"$accountId"'", policyId: "'"$alertPolicyId"'", condition: {enabled: false, name: \""'"$alertConditionName"'"\", description: null, nrql: {query: \"SELECT count(apm.service.error.count) / count(apm.service.transaction.duration) FROM Metric WHERE (entity.guid = \u0027MzM2ODQ2NXxBUE18QVBQTElDQVRJT058NDU1NzQzNTU5\u0027)\"}, expiration: null, runbookUrl: null, signal: {aggregationDelay: 120, aggregationMethod: EVENT_FLOW, aggregationTimer: null, fillValue: null, aggregationWindow: 60, fillOption: NONE, slideBy: null}, terms: [{operator: BELOW_OR_EQUALS, threshold: 1, priority: CRITICAL, thresholdDuration: 60, thresholdOccurrences: AT_LEAST_ONCE}], violationTimeLimitSeconds: 259200}) {\n    id\n  }\n}\n", "variables":""}'
+  -H "API-Key: $NEWRELIC_API_KEY" \
+  --data-binary "$query" \
+  | jq -r .data.alertsNrqlConditionStaticCreate.id)
+
+echo "Alert condition ID: $alertConditionId"
+#########
+
+############################
+### Notification channel ###
+############################
+
+# Set NerdGraph query
+query='{"query":"mutation {\n  alertsNotificationChannelCreate(accountId: '$accountId', notificationChannel: {email: {emails: \"'$notificationChannelEmail'\", name: \"'$notificationChannelName'\", includeJson: true}}) {\n    error {\n      description\n      errorType\n    }\n    notificationChannel {\n      ... on AlertsEmailNotificationChannel {\n        id\n        name\n        config {\n          emails\n        }\n      }\n    }\n  }\n}\n", "variables":""}'
+
+# Clear the additional spaces
+query=$(echo $query | sed 's/    /  /g')
+
+# Create notification channel
+notificationChannelId=$(curl https://api.eu.newrelic.com/graphql \
+  -H "Content-Type: application/json" \
+  -H "API-Key: $NEWRELIC_API_KEY" \
+  --data-binary "$query" \
+  | jq -r .data.alertsNotificationChannelCreate.notificationChannel.id)
+
+echo $notificationChannelId
+#########
+
+#########################
+### Channel to Policy ###
+#########################
+
+# Set NerdGraph query
+query='{"query":"mutation {\n  alertsNotificationChannelsAddToPolicy(policyId: '$alertPolicyId', accountId: '$accountId', notificationChannelIds: '$notificationChannelId') {\n    errors {\n      description\n      errorType\n    }\n    policyId\n  }\n}\n", "variables":""}'
+
+# Clear the additional spaces
+query=$(echo $query | sed 's/    /  /g')
+
+errors=$(curl https://api.eu.newrelic.com/graphql \
+  -H "Content-Type: application/json" \
+  -H "API-Key: $NEWRELIC_API_KEY" \
+  --data-binary "$query" \
+  | jq .data.alertsNotificationChannelsAddToPolicy.errors)
+
+echo $errors
+#########
