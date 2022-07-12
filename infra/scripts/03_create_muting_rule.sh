@@ -21,16 +21,16 @@ timeZone="YOUR_TIME_ZONE"
 ###################
 
 # Set NerdGraph query
-query='{"query":"mutation {\n  alertsMutingRuleCreate(accountId: "'$accountId'", rule: {condition: {conditions: {attribute: \"conditionId\", operator: EQUALS, values: \"'$alertConditionId'\"}, operator: AND}, enabled: true, name: \"'$mutingRuleName'\", schedule: {startTime: \"'$startTime'\", endTime: \"'$endTime'\", timeZone: \"'$timeZone'\"}}) {\n    id\n  }\n}\n", "variables":""}'
+query='{"query":"mutation {\n  alertsMutingRuleCreate(accountId: '$accountId', rule: {condition: {conditions: {attribute: \"conditionId\", operator: EQUALS, values: \"'$alertConditionId'\"}, operator: AND}, enabled: true, name: \"'$mutingRuleName'\", schedule: {startTime: \"'$startTime'\", endTime: \"'$endTime'\", timeZone: \"'$timeZone'\"}}) {\n    id\n  }\n}\n", "variables":""}'
 
 # Clear the additional spaces
 query=$(echo $query | sed 's/    /  /g')
 
-mutingRule=$(curl https://api.eu.newrelic.com/graphql \
+mutingRuleId=$(curl https://api.eu.newrelic.com/graphql \
   -H "Content-Type: application/json" \
-  -H "API-Key: $NEWRELIC_LICENSE_KEY" \
+  -H "API-Key: $NEWRELIC_API_KEY" \
   --data-binary "$query" \
-  | jq)
+  | jq -r .data.alertsMutingRuleCreate.id)
 
-echo $mutingRule
+echo $mutingRuleId
 #########
