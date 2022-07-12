@@ -8,12 +8,14 @@ accountId="YOUR_ACCOUNT_ID"
 # Alert condition
 alertConditionId="YOUR_ALERT_CONDITION_ID"
 
-# Muting Rule
+# Muting rule
 mutingRuleName="Shut the hell up"
 
-# Time Format -> "YYYY-MM-DDThh:mm:ss" (e.g. "2022-07-10T14:00:00")
+# Time format -> "YYYY-MM-DDThh:mm:ss" (e.g. "2022-07-10T14:00:00")
 startTime="YOUR_START_TIME"
 endTime="YOUR_END_TIME"
+
+# Zone format -> e.g. "Europe/Berlin"
 timeZone="YOUR_TIME_ZONE"
 
 ###################
