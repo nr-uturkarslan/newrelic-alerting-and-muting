@@ -41,7 +41,7 @@ echo "Alert policy ID: $alertPolicyId"
 #######################
 
 # Set NerdGraph query
-nrqlQuery="FROM Transaction SELECT count(*) WHERE appName = \u0027alert-app\u0027 AND http.statusCode = 400"
+nrqlQuery="FROM Transaction SELECT count(*) WHERE appName = \u0027alert-app\u0027 AND (http.statusCode = 400 OR http.statusCode = 500)"
 query='{"query":"mutation {\n  alertsNrqlConditionStaticCreate(accountId: '$accountId', policyId: '$alertPolicyId', condition: {enabled: true, name: \"'$alertConditionName'\", description: null, nrql: {query: \"'$nrqlQuery'\"}, expiration: null, runbookUrl: null, signal: {aggregationDelay: 120, aggregationMethod: EVENT_FLOW, aggregationTimer: null, fillValue: null, aggregationWindow: 60, fillOption: NONE, slideBy: null}, terms: [{operator: ABOVE, threshold: 1, priority: CRITICAL, thresholdDuration: 300, thresholdOccurrences: AT_LEAST_ONCE}], violationTimeLimitSeconds: 259200}) {\n    id\n  }\n}\n", "variables":""}'
 
 # Clear the additional spaces
@@ -74,7 +74,7 @@ notificationChannelId=$(curl https://api.eu.newrelic.com/graphql \
   --data-binary "$query" \
   | jq -r .data.alertsNotificationChannelCreate.notificationChannel.id)
 
-echo $notificationChannelId
+echo "Notification channel ID: $notificationChannelId"
 #########
 
 #########################
