@@ -10,7 +10,7 @@ alertPolicyName='My Undisputed Alert Policy'
 
 # Alert condition
 alertConditionName="My Undisputed Alert Condition"
-incidentPreference="PER_CONDITION"
+incidentPreference="PER_CONDITION_AND_TARGET"
 
 # Notification channel
 notificationChannelName="My Undisputed Notification Channel"
