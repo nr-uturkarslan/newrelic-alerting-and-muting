@@ -17,7 +17,7 @@ query=$(echo $query | sed 's/    /  /g')
 # Disable alert condition
 enableAlertCondition=$(curl https://api.eu.newrelic.com/graphql \
   -H "Content-Type: application/json" \
-  -H "API-Key: $NEWRELIC_LICENSE_KEY" \
+  -H "API-Key: $NEWRELIC_API_KEY" \
   --data-binary "$query" \
   | jq)
 
@@ -37,7 +37,7 @@ query=$(echo $query | sed 's/    /  /g')
 # Delete muting rule
 mutingRuleId=$(curl https://api.eu.newrelic.com/graphql \
   -H "Content-Type: application/json" \
-  -H "API-Key: $NEWRELIC_LICENSE_KEY" \
+  -H "API-Key: $NEWRELIC_API_KEY" \
   --data-binary "$query" \
   | jq -r .data.alertsMutingRuleDelete.id)
 
@@ -57,8 +57,8 @@ query=$(echo $query | sed 's/    /  /g')
 # Disable alert condition
 enableAlertCondition=$(curl https://api.eu.newrelic.com/graphql \
   -H "Content-Type: application/json" \
-  -H "API-Key: $NEWRELIC_LICENSE_KEY" \
-  --data-binary '{"query":"mutation {\n  alertsNrqlConditionStaticUpdate(accountId: "'"$accountId"'", condition: {enabled: true}, id: "'"$alertConditionId"'") {\n    id\n  }\n}\n", "variables":""}' \
+  -H "API-Key: $NEWRELIC_API_KEY" \
+  --data-binary "$query" \
   | jq)
 
 echo "Alert condition with ID [$alertConditionId] is enabled back again."
